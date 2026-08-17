@@ -27,15 +27,16 @@ class HealthyLifeApp : Application() {
     }
 
     val dietRepository: DietRepository by lazy {
-        DietRepository(database.dietRecordDao(), database.dietEntryDao(), foodRepository)
+        DietRepository(database, database.dietRecordDao(), database.dietEntryDao(), foodRepository)
     }
 
     val bodyRepository: BodyRepository by lazy {
-        BodyRepository(database.weightRecordDao(), database.bodyMeasurementDao(), database.bodyDimensionTypeDao())
+        BodyRepository(database, database.weightRecordDao(), database.bodyMeasurementDao(), database.bodyDimensionTypeDao())
     }
 
     val statsRepository: StatsRepository by lazy {
         StatsRepository(
+            database,
             database.dietRecordDao(),
             database.dietEntryDao(),
             database.weightRecordDao(),
