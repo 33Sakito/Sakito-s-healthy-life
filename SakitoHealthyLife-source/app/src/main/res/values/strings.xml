@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Sakito 健康生活</string>
-    <string name="reminder_channel_name">每日记录提醒</string>
-    <string name="reminder_channel_desc">每天提醒记录饮食与身体数据</string>
-</resources>
