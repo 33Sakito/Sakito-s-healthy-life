@@ -18,7 +18,7 @@ object SeedData {
             .toList()
 
         for (line in lines) {
-            val cols = line.split(",", ignoreCase = false, limit = 13)
+            val cols = parseSeedLine(line)
             if (cols.size < 13) continue
             val name = cols[0].trim()
             if (name.isEmpty()) continue
@@ -74,5 +74,50 @@ object SeedData {
                 bodyDao.insert(BodyDimensionTypeEntity(name = name, isCustom = false, sortOrder = index))
             }
         }
+    }
+
+    private fun parseSeedLine(line: String): List<String> {
+        // If the CSV uses quoted JSON fields, use the standard quote-aware parser.
+        // The built-in seed rows always have `,false,false,` before the units JSON,
+        // so `,false,false,"` reliably indicates a properly quoted CSV file.
+        if (line.contains(",false,false,\"")) {
+            return parseCsvLine(line)
+        }
+        // Fallback for the simple unquoted seed file: split first 11 commas,
+        // then split the trailing "<unitsJson>,<microsJson>" at the "],[" boundary.
+        val parts = line.split(",", limit = 12)
+        if (parts.size < 12) return parts
+        val remainder = parts[11]
+        val idx = remainder.indexOf("],[")
+        return if (idx >= 0) {
+            parts.take(11) + remainder.substring(0, idx + 1) + remainder.substring(idx + 2)
+        } else {
+            parts + "[]"
+        }
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < line.length) {
+            val c = line[i]
+            when {
+                c == '"' && inQuotes && i + 1 < line.length && line[i + 1] == '"' -> {
+                    current.append('"')
+                    i++
+                }
+                c == '"' -> inQuotes = !inQuotes
+                c == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current.clear()
+                }
+                else -> current.append(c)
+            }
+            i++
+        }
+        result.add(current.toString())
+        return result
     }
 }
